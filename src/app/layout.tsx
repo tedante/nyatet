@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
-import { Epilogue, IBM_Plex_Mono } from "next/font/google";
+import { Jost, Karla, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const epilogue = Epilogue({
+const jost = Jost({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  variable: "--font-epilogue",
+  weight: ["700"],
+  variable: "--font-jost",
   display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
+const karla = Karla({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-karla",
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400"],
-  variable: "--font-plex-mono",
+  variable: "--font-jetbrains",
   display: "swap",
 });
 
@@ -23,7 +30,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${epilogue.variable} ${plexMono.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${jost.variable} ${karla.variable} ${jetbrains.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

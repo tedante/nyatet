@@ -48,7 +48,8 @@ const shots = [
   ["note-detail", `/notes/${note.id}`],
 ];
 for (const [slug, path] of shots) {
-  await page.goto(`${base}${path}`, { waitUntil: "networkidle" });
+  await page.goto(`${base}${path}`, { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: `${out}/${slug}-1440.png`, fullPage: true });
   await page.setViewportSize({ width: 375, height: 812 });
   await page.screenshot({ path: `${out}/${slug}-375.png`, fullPage: true });
@@ -56,7 +57,8 @@ for (const [slug, path] of shots) {
 }
 
 const publicPage = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-await publicPage.goto(`${base}/s/${share.token}`, { waitUntil: "networkidle" });
+await publicPage.goto(`${base}/s/${share.token}`, { waitUntil: "domcontentloaded" });
+await publicPage.evaluate(() => document.fonts.ready);
 await publicPage.screenshot({ path: `${out}/public-share-1440.png`, fullPage: true });
 await publicPage.setViewportSize({ width: 375, height: 812 });
 await publicPage.screenshot({ path: `${out}/public-share-375.png`, fullPage: true });

@@ -123,7 +123,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
 
   return (
     <div>
-      <article>
+      <article className="border-[3px] border-ink bg-paper-3 p-5 sm:p-6">
         {editing ? (
           <div>
             <textarea
@@ -136,7 +136,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
               <button
                 onClick={saveEdit}
                 disabled={pending}
-                className="rounded-[10px] bg-ink px-4 py-2 text-sm font-semibold text-paper hover:bg-ink-2 disabled:opacity-60"
+                className="border-2 border-ink bg-ink px-4 py-2 text-sm font-semibold uppercase text-paper hover:bg-paper hover:text-ink disabled:opacity-60"
               >
                 Save
               </button>
@@ -145,7 +145,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
                   setDraft(note.content);
                   setEditing(false);
                 }}
-                className="rounded-[10px] border border-rule bg-paper-2 px-4 py-2 text-sm font-semibold text-ink hover:border-ink"
+                className="border-2 border-ink px-4 py-2 text-sm font-semibold uppercase text-ink hover:bg-ink hover:text-paper"
               >
                 Cancel
               </button>
@@ -155,19 +155,19 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
           <Markdown content={note.content} />
         )}
 
-        <footer className="mt-6 flex items-center gap-3 border-t border-rule pt-3 text-xs text-muted">
+        <footer className="mt-5 flex items-center gap-3 border-t-2 border-ink pt-3 text-xs text-muted">
           <span>Created {formatDate(note.createdAt)}</span>
           <button
             onClick={() => setEditing(true)}
-            className="ml-auto font-semibold text-ink hover:underline"
+            className="ml-auto font-semibold uppercase text-ink hover:underline"
           >
             Edit
           </button>
         </footer>
       </article>
 
-      <section className="mt-12 border-t border-rule pt-6">
-        <h2 className="text-sm font-semibold text-ink">Share links</h2>
+      <section className="mt-8 border-2 border-ink bg-paper p-5">
+        <h2 className="text-lg uppercase">Share links</h2>
         <p className="mt-1 text-sm text-muted">
           Anyone with a link can read this note. No account needed. Revoke a link to stop access.
         </p>
@@ -176,7 +176,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
           <select
             value={expiry}
             onChange={(event) => setExpiry(event.target.value)}
-            className="rounded-[10px] border border-muted bg-paper px-3 py-2 text-sm text-ink"
+            className="border-2 border-ink bg-paper px-3 py-2 text-sm text-ink"
           >
             {EXPIRY_CHOICES.map((choice) => (
               <option key={choice.value} value={choice.value}>
@@ -187,7 +187,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
           <button
             onClick={createShare}
             disabled={pending}
-            className="rounded-[10px] bg-ink px-4 py-2 text-sm font-semibold text-paper hover:bg-ink-2 disabled:opacity-60"
+            className="border-2 border-ink bg-ink px-4 py-2 text-sm font-semibold uppercase text-paper hover:bg-paper hover:text-ink disabled:opacity-60"
           >
             Create link
           </button>
@@ -196,14 +196,14 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
         {shares.length === 0 ? (
           <p className="mt-4 text-sm text-muted">No links yet.</p>
         ) : (
-          <ul className="mt-4 border-t border-rule">
+          <ul className="mt-4 border-t-2 border-ink">
             {shares.map((share) => (
-              <li key={share.id} className="border-b border-rule-2 py-3 text-sm">
+              <li key={share.id} className="border-b border-rule py-3 text-sm last:border-b-0">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   {share.name && <span className="font-semibold text-ink">{share.name}</span>}
                   <code className="font-outlier text-xs text-muted">/s/{share.token}</code>
                   {share.expired ? (
-                    <span className="rounded-full border border-rule px-2 py-0.5 text-xs text-muted">
+                    <span className="border-2 border-ink px-2 py-0.5 text-xs font-semibold text-muted">
                       Expired
                     </span>
                   ) : (
@@ -211,22 +211,22 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
                       {share.expiresAt ? `Expires ${formatDate(share.expiresAt)}` : "Never expires"}
                     </span>
                   )}
-                  <div className="flex w-full items-center justify-end gap-4 text-xs sm:ml-auto sm:w-auto">
+                  <div className="flex w-full items-center justify-end gap-3 text-xs sm:ml-auto sm:w-auto">
                     <button
                       onClick={() => startEditShare(share)}
-                      className="font-semibold text-ink hover:underline"
+                      className="font-semibold uppercase text-ink hover:underline"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => copyLink(share)}
-                      className="font-semibold text-ink hover:underline"
+                      className="font-semibold uppercase text-ink hover:underline"
                     >
                       {copiedId === share.id ? "Copied" : "Copy"}
                     </button>
                     <button
                       onClick={() => revokeShare(share)}
-                      className="font-semibold text-ink hover:underline"
+                      className="font-semibold uppercase text-ink hover:underline"
                     >
                       Revoke
                     </button>
@@ -236,20 +236,20 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
                 {editingShareId === share.id && (
                   <form onSubmit={saveShare} className="mt-3 flex flex-wrap items-end gap-3">
                     <label className="min-w-40 flex-1">
-                      <span className="text-xs font-semibold text-ink">Name</span>
+                      <span className="text-xs font-semibold text-muted">Name</span>
                       <input
                         value={shareName}
                         onChange={(event) => setShareName(event.target.value)}
                         placeholder="Who is this link for?"
-                        className="mt-1 w-full rounded-[10px] border border-muted bg-paper px-3 py-2 text-sm text-ink"
+                        className="mt-1 w-full border-2 border-ink bg-paper px-3 py-2 text-sm text-ink"
                       />
                     </label>
                     <label>
-                      <span className="text-xs font-semibold text-ink">Expiry</span>
+                      <span className="text-xs font-semibold text-muted">Expiry</span>
                       <select
                         value={shareExpiry}
                         onChange={(event) => setShareExpiry(event.target.value)}
-                        className="mt-1 block rounded-[10px] border border-muted bg-paper px-3 py-2 text-sm text-ink"
+                        className="mt-1 block border-2 border-ink bg-paper px-3 py-2 text-sm text-ink"
                       >
                         <option value="keep">Keep current expiry</option>
                         {EXPIRY_CHOICES.map((choice) => (
@@ -262,14 +262,14 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
                     <button
                       type="submit"
                       disabled={pending}
-                      className="rounded-[10px] bg-ink px-4 py-2 text-sm font-semibold text-paper hover:bg-ink-2 disabled:opacity-60"
+                      className="border-2 border-ink bg-ink px-4 py-2 text-sm font-semibold uppercase text-paper hover:bg-paper hover:text-ink disabled:opacity-60"
                     >
                       Save
                     </button>
                     <button
                       type="button"
                       onClick={cancelEditShare}
-                      className="rounded-[10px] border border-rule bg-paper-2 px-4 py-2 text-sm font-semibold text-ink hover:border-ink"
+                      className="border-2 border-ink px-4 py-2 text-sm font-semibold uppercase text-ink hover:bg-ink hover:text-paper"
                     >
                       Cancel
                     </button>
