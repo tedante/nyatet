@@ -189,3 +189,105 @@ describe("PATCH share expiry", () => {
     expect((await listShares(note.id))[0].token).toBe(share.token);
   });
 });
+
+describe("PATCH share slug", () => {
+  it("sets a readable slug and returns it", async () => {
+    const share = await createShare(note.id);
+
+    const { status, json } = await patch(note.id, share.id, { slug: "notes1" });
+
+    expect(status).toBe(200);
+    expect(json.share.slug).toBe("notes1");
+    expect((await listShares(note.id))[0].slug).toBe("notes1");
+  });
+
+  it("folds uppercase to lowercase", async () => {
+    const share = await createShare(note.id);
+
+    const { status, json } = await patch(note.id, share.id, { slug: "Notes1" });
+
+    expect(status).toBe(200);
+    expect(json.share.slug).toBe("notes1");
+  });
+
+  it("clears a slug when sent an empty string", async () => {
+    const share = await createShare(note.id, { slug: "notes1" });
+
+    const { status } = await patch(note.id, share.id, { slug: "" });
+
+    expect(status).toBe(200);
+    expect((await listShares(note.id))[0].slug).toBeNull();
+  });
+
+  it("rejects a slug shorter than 2 characters", async () => {
+    const share = await createShare(note.id);
+
+    const { status, json } = await patch(note.id, share.id, { slug: "a" });
+
+    expect(status).toBe(400);
+    expect(json.error).toContain("2 to 24");
+  });
+
+  it("rejects a slug longer than 24 characters", async () => {
+    const share = await createShare(note.id);
+
+    const { status, json } = await patch(note.id, share.id, { slug: "x".repeat(25) });
+
+    expect(status).toBe(400);
+    expect(json.error).toContain("2 to 24");
+  });
+
+  it.each(["notes 1", "notes!", "-notes"])("rejects the slug %s", async (slug) => {
+    const share = await createShare(note.id);
+
+    const { status, json } = await patch(note.id, share.id, { slug });
+
+    expect(status).toBe(400);
+    expect(json.error).toContain("lowercase letters");
+  });
+
+  it("refuses a slug another link already uses", async () => {
+    await createShare(note.id, { slug: "notes1" });
+    const second = await createShare(note.id);
+
+    const { status, json } = await patch(note.id, second.id, { slug: "notes1" });
+
+    expect(status).toBe(409);
+    expect(json.error).toContain("taken");
+  });
+
+  it("leaves the token untouched", async () => {
+    const share = await createShare(note.id);
+
+    await patch(note.id, share.id, { slug: "notes1" });
+
+    expect((await listShares(note.id))[0].token).toBe(share.token);
+  });
+
+  it("leaves the name and expiry untouched when only the slug changes", async () => {
+    const expiresAt = new Date(Date.now() + 7 * DAY_MS);
+    const share = await createShare(note.id, { name: "Work", expiresAt });
+
+    await patch(note.id, share.id, { slug: "notes1" });
+
+    const [updated] = await listShares(note.id);
+    expect(updated.name).toBe("Work");
+    expect(updated.expiresAt).toBe(expiresAt.toISOString());
+  });
+
+  it("leaves the slug untouched when only the name changes", async () => {
+    const share = await createShare(note.id, { slug: "notes1" });
+
+    await patch(note.id, share.id, { name: "Work" });
+
+    expect((await listShares(note.id))[0].slug).toBe("notes1");
+  });
+
+  it("leaves the slug untouched when only the expiry changes", async () => {
+    const share = await createShare(note.id, { slug: "notes1" });
+
+    await patch(note.id, share.id, { expiresInDays: 1 });
+
+    expect((await listShares(note.id))[0].slug).toBe("notes1");
+  });
+});

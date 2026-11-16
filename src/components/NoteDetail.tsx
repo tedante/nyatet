@@ -17,6 +17,10 @@ function daysFromExpiry(value: string): number | null {
   return days > 0 ? days : null;
 }
 
+function sharePath(share: Share): string {
+  return `/s/${share.slug ?? share.token}`;
+}
+
 export function NoteDetail({ note: initialNote, shares: initialShares }: { note: Note; shares: Share[] }) {
   const [note, setNote] = useState(initialNote);
   const [shares, setShares] = useState(initialShares);
@@ -27,6 +31,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
   const [pending, setPending] = useState(false);
   const [editingShareId, setEditingShareId] = useState<string | null>(null);
   const [shareName, setShareName] = useState("");
+  const [shareSlug, setShareSlug] = useState("");
   const [shareExpiry, setShareExpiry] = useState("keep");
   const [shareError, setShareError] = useState<string | null>(null);
 
@@ -72,7 +77,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
   }
 
   async function copyLink(share: Share) {
-    await navigator.clipboard.writeText(`${window.location.origin}/s/${share.token}`);
+    await navigator.clipboard.writeText(`${window.location.origin}${sharePath(share)}`);
     setCopiedId(share.id);
     setTimeout(() => setCopiedId(null), 1500);
   }
@@ -80,6 +85,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
   function startEditShare(share: Share) {
     setEditingShareId(share.id);
     setShareName(share.name ?? "");
+    setShareSlug(share.slug ?? "");
     setShareExpiry("keep");
     setShareError(null);
   }
@@ -87,6 +93,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
   function cancelEditShare() {
     setEditingShareId(null);
     setShareName("");
+    setShareSlug("");
     setShareExpiry("keep");
     setShareError(null);
   }
@@ -95,8 +102,9 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
     event.preventDefault();
     if (!editingShareId) return;
 
-    const body: { name: string; expiresInDays?: number | null } = {
+    const body: { name: string; slug: string; expiresInDays?: number | null } = {
       name: shareName.trim(),
+      slug: shareSlug.trim(),
     };
     if (shareExpiry !== "keep") {
       body.expiresInDays = daysFromExpiry(shareExpiry);
@@ -201,7 +209,7 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
               <li key={share.id} className="border-b border-rule py-3 text-sm last:border-b-0">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   {share.name && <span className="font-semibold text-ink">{share.name}</span>}
-                  <code className="font-outlier text-xs text-muted">/s/{share.token}</code>
+                  <code className="font-outlier text-xs text-muted">{sharePath(share)}</code>
                   {share.expired ? (
                     <span className="border-2 border-ink px-2 py-0.5 text-xs font-semibold text-muted">
                       Expired
@@ -234,7 +242,8 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
                 </div>
 
                 {editingShareId === share.id && (
-                  <form onSubmit={saveShare} className="mt-3 flex flex-wrap items-end gap-3">
+                  <>
+                    <form onSubmit={saveShare} className="mt-3 flex flex-wrap items-end gap-3">
                     <label className="min-w-40 flex-1">
                       <span className="text-xs font-semibold text-muted">Name</span>
                       <input
@@ -243,6 +252,20 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
                         placeholder="Who is this link for?"
                         className="mt-1 w-full border-2 border-ink bg-paper px-3 py-2 text-sm text-ink"
                       />
+                    </label>
+                    <label className="min-w-40 flex-1">
+                      <span className="text-xs font-semibold text-muted">Link</span>
+                      <span className="mt-1 flex items-stretch">
+                        <span className="border-2 border-r-0 border-ink bg-paper-2 px-2 py-2 text-sm text-muted">
+                          /s/
+                        </span>
+                        <input
+                          value={shareSlug}
+                          onChange={(event) => setShareSlug(event.target.value)}
+                          placeholder={share.token}
+                          className="w-full min-w-0 border-2 border-ink bg-paper px-3 py-2 text-sm text-ink"
+                        />
+                      </span>
                     </label>
                     <label>
                       <span className="text-xs font-semibold text-muted">Expiry</span>
@@ -274,10 +297,14 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
                       Cancel
                     </button>
                   </form>
-                )}
 
-                {editingShareId === share.id && shareError && (
-                  <p className="mt-2 text-xs text-error">{shareError}</p>
+                    <p className="mt-2 text-xs text-muted">
+                      Changing the link stops the previous URL from working. Leave it empty to use
+                      the random one.
+                    </p>
+
+                    {shareError && <p className="mt-2 text-xs text-error">{shareError}</p>}
+                  </>
                 )}
               </li>
             ))}

@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { db } from "./db";
 import { noteShares, notes, users } from "./db/schema";
 import type { Note, Share } from "./types";
@@ -38,6 +38,7 @@ function toShare(row: ShareRow): Share {
   return {
     id: row.id,
     token: row.token,
+    slug: row.slug,
     name: row.name,
     expiresAt: row.expiresAt?.toISOString() ?? null,
     expired: isExpired(row.expiresAt),
@@ -129,7 +130,7 @@ export async function updateShare(
   userId: string,
   noteId: string,
   shareId: string,
-  patch: { name?: string | null; expiresInDays?: number | null },
+  patch: { slug?: string | null; name?: string | null; expiresInDays?: number | null },
 ): Promise<Share | null> {
   const [note] = await db
     .select({ id: notes.id })
@@ -138,7 +139,8 @@ export async function updateShare(
     .limit(1);
   if (!note) return null;
 
-  const values: { name?: string | null; expiresAt?: Date | null } = {};
+  const values: { slug?: string | null; name?: string | null; expiresAt?: Date | null } = {};
+  if (patch.slug !== undefined) values.slug = patch.slug === "" ? null : patch.slug;
   if (patch.name !== undefined) values.name = patch.name;
   if (patch.expiresInDays !== undefined) {
     values.expiresAt =
@@ -173,14 +175,15 @@ export async function deleteShare(
 }
 
 export async function getSharedNote(
-  token: string,
+  slugOrToken: string,
 ): Promise<{ note: Note; author: string } | null> {
+  const slug = slugOrToken.toLowerCase();
   const [row] = await db
     .select({ note: notes, share: noteShares, author: users.name })
     .from(noteShares)
     .innerJoin(notes, eq(noteShares.noteId, notes.id))
     .innerJoin(users, eq(notes.userId, users.id))
-    .where(eq(noteShares.token, token))
+    .where(or(eq(noteShares.slug, slug), eq(noteShares.token, slugOrToken)))
     .limit(1);
 
   if (!row) return null;

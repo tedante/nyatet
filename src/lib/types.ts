@@ -10,6 +10,7 @@ export type Note = {
 export type Share = {
   id: string;
   token: string;
+  slug: string | null;
   name: string | null;
   expiresAt: string | null;
   expired: boolean;

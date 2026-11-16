@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
+import { isUniqueViolation } from "@/lib/db/errors";
 import { deleteShare, updateShare } from "@/lib/notes";
 
 const schema = z
@@ -19,10 +20,25 @@ const schema = z
       .max(365, "Expiry must be between 1 and 365 days.")
       .nullable()
       .optional(),
+    slug: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .refine((value) => value === "" || (value.length >= 2 && value.length <= 24), {
+        message: "Link must be 2 to 24 characters.",
+      })
+      .refine((value) => value === "" || /^[a-z0-9][a-z0-9_-]*$/.test(value), {
+        message:
+          "Link must use lowercase letters, digits, hyphens or underscores, and start with a letter or digit.",
+      })
+      .nullable()
+      .optional(),
   })
-  .refine((value) => value.name !== undefined || value.expiresInDays !== undefined, {
-    message: "Nothing to update.",
-  });
+  .refine(
+    (value) =>
+      value.name !== undefined || value.expiresInDays !== undefined || value.slug !== undefined,
+    { message: "Nothing to update." },
+  );
 
 export async function PATCH(
   request: Request,
@@ -41,7 +57,19 @@ export async function PATCH(
   }
 
   const { id, shareId } = await params;
-  const share = await updateShare(user.id, id, shareId, parsed.data);
+  const { slug } = parsed.data;
+  let share;
+  try {
+    share = await updateShare(user.id, id, shareId, parsed.data);
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      return NextResponse.json(
+        { error: slug ? `The link "${slug}" is already taken.` : "That link is already taken." },
+        { status: 409 },
+      );
+    }
+    throw error;
+  }
   if (!share) return NextResponse.json({ error: "Share not found." }, { status: 404 });
 
   return NextResponse.json({ share });

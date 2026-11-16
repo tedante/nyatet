@@ -1,4 +1,4 @@
-import { boolean, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -31,9 +31,13 @@ export const noteShares = pgTable(
       .notNull()
       .references(() => notes.id, { onDelete: "cascade" }),
     token: text("token").notNull().unique(),
+    slug: text("slug"),
     name: text("name"),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("note_shares_note_idx").on(table.noteId)],
+  (table) => [
+    index("note_shares_note_idx").on(table.noteId),
+    uniqueIndex("note_shares_slug_idx").on(table.slug),
+  ],
 );

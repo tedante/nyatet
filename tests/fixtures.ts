@@ -26,7 +26,7 @@ export async function createNote(userId: string, content = "A test note #tag") {
 
 export async function createShare(
   noteId: string,
-  values: { name?: string | null; expiresAt?: Date | null } = {},
+  values: { slug?: string | null; name?: string | null; expiresAt?: Date | null } = {},
 ) {
   const [row] = await db
     .insert(noteShares)

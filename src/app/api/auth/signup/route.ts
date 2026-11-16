@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { isUniqueViolation } from "@/lib/db/errors";
 import { users } from "@/lib/db/schema";
 import { createSession, hashPassword } from "@/lib/auth";
 
@@ -36,8 +37,4 @@ export async function POST(request: Request) {
     }
     throw error;
   }
-}
-
-function isUniqueViolation(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "23505";
 }
