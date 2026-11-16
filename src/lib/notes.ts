@@ -5,6 +5,7 @@ import { noteShares, notes, users } from "./db/schema";
 import type { Note, Share } from "./types";
 
 const TAG_PATTERN = /(?:^|[\s(])#([\p{L}\p{N}_-]+)/gu;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function extractTags(content: string): string[] {
   const tags = new Set<string>();
@@ -29,11 +30,17 @@ function toNote(row: NoteRow): Note {
 
 type ShareRow = typeof noteShares.$inferSelect;
 
+function isExpired(expiresAt: Date | null): boolean {
+  return expiresAt ? expiresAt.getTime() <= Date.now() : false;
+}
+
 function toShare(row: ShareRow): Share {
   return {
     id: row.id,
     token: row.token,
+    name: row.name,
     expiresAt: row.expiresAt?.toISOString() ?? null,
+    expired: isExpired(row.expiresAt),
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -105,9 +112,7 @@ export async function createShare(
     .limit(1);
   if (!note) return null;
 
-  const expiresAt = expiresInDays
-    ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
-    : null;
+  const expiresAt = expiresInDays ? new Date(Date.now() + expiresInDays * DAY_MS) : null;
 
   const [row] = await db
     .insert(noteShares)
@@ -118,6 +123,34 @@ export async function createShare(
     })
     .returning();
   return toShare(row);
+}
+
+export async function updateShare(
+  userId: string,
+  noteId: string,
+  shareId: string,
+  patch: { name?: string | null; expiresInDays?: number | null },
+): Promise<Share | null> {
+  const [note] = await db
+    .select({ id: notes.id })
+    .from(notes)
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)))
+    .limit(1);
+  if (!note) return null;
+
+  const values: { name?: string | null; expiresAt?: Date | null } = {};
+  if (patch.name !== undefined) values.name = patch.name;
+  if (patch.expiresInDays !== undefined) {
+    values.expiresAt =
+      patch.expiresInDays === null ? null : new Date(Date.now() + patch.expiresInDays * DAY_MS);
+  }
+
+  const [row] = await db
+    .update(noteShares)
+    .set(values)
+    .where(and(eq(noteShares.id, shareId), eq(noteShares.noteId, noteId)))
+    .returning();
+  return row ? toShare(row) : null;
 }
 
 export async function deleteShare(
@@ -151,7 +184,7 @@ export async function getSharedNote(
     .limit(1);
 
   if (!row) return null;
-  if (row.share.expiresAt && row.share.expiresAt.getTime() <= Date.now()) return null;
+  if (isExpired(row.share.expiresAt)) return null;
 
   return { note: toNote(row.note), author: row.author };
 }

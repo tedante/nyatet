@@ -63,7 +63,7 @@ Neon's free tier suspends an idle database, so the first request after a pause i
 
 - `users`: id, email, name, password hash
 - `notes`: id, user id, markdown content, pinned, timestamps
-- `note_shares`: id, note id, random token, optional expiry
+- `note_shares`: id, note id, random token, optional name, optional expiry
 
 Tags are derived from note content at read time, not stored.
 
