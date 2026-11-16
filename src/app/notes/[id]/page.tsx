@@ -20,11 +20,11 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
   return (
     <>
       <Header name={user.name} />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
-        <Link href="/home" className="text-sm text-stone-500 hover:text-stone-900">
-          ← Back to notes
+      <main className="mx-auto w-full max-w-[720px] flex-1 px-4 py-6 sm:px-6">
+        <Link href="/home" className="text-sm font-semibold text-ink hover:underline">
+          Back to notes
         </Link>
-        <div className="mt-4">
+        <div className="mt-6">
           <NoteDetail note={note} shares={shares} />
         </div>
       </main>

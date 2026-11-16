@@ -58,8 +58,8 @@ export function Timeline({ initialNotes }: { initialNotes: Note[] }) {
   }
 
   return (
-    <div className="space-y-5">
-      <form onSubmit={addNote} className="rounded-xl border border-stone-200 bg-white p-3">
+    <div className="space-y-8">
+      <form onSubmit={addNote}>
         <textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
@@ -71,19 +71,19 @@ export function Timeline({ initialNotes }: { initialNotes: Note[] }) {
           }}
           rows={3}
           placeholder="What is on your mind? Use #tags to group notes."
-          className="w-full resize-y bg-transparent text-sm outline-none placeholder:text-stone-400"
+          className="w-full resize-y rounded-[12px] border border-muted bg-paper px-4 py-3 text-md leading-relaxed text-ink placeholder:text-muted"
         />
-        <div className="mt-2 flex items-center justify-between">
-          <span className="text-xs text-stone-400">Markdown, Ctrl/Cmd + Enter to save</span>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <span className="text-xs text-muted">Markdown. Ctrl/Cmd + Enter to save.</span>
           <button
             type="submit"
             disabled={posting || !draft.trim()}
-            className="rounded-lg bg-teal-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+            className="rounded-[10px] bg-ink px-4 py-2 text-sm font-semibold text-paper hover:bg-ink-2 disabled:opacity-50"
           >
             {posting ? "Saving..." : "Save note"}
           </button>
         </div>
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-2 text-sm text-error">{error}</p>}
       </form>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -91,12 +91,12 @@ export function Timeline({ initialNotes }: { initialNotes: Note[] }) {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search notes"
-          className="min-w-40 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-teal-600"
+          className="min-w-40 flex-1 rounded-[10px] border border-muted bg-paper px-3 py-2 text-sm text-ink"
         />
         {tag && (
           <button
             onClick={() => setTag(null)}
-            className="rounded-full bg-teal-700 px-3 py-1 text-xs text-white"
+            className="rounded-full bg-ink px-3 py-1 text-xs font-semibold text-paper"
           >
             #{tag} ×
           </button>
@@ -107,7 +107,7 @@ export function Timeline({ initialNotes }: { initialNotes: Note[] }) {
             <button
               key={item}
               onClick={() => setTag(item)}
-              className="rounded-full bg-white px-3 py-1 text-xs text-stone-600 ring-1 ring-stone-200 hover:bg-stone-100"
+              className="rounded-full border border-rule px-3 py-1 text-xs font-semibold text-ink-2 hover:border-ink"
             >
               #{item}
             </button>
@@ -115,11 +115,13 @@ export function Timeline({ initialNotes }: { initialNotes: Note[] }) {
       </div>
 
       {visible.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-stone-300 p-8 text-center text-sm text-stone-500">
-          {notes.length === 0 ? "No notes yet. Write the first one above." : "No notes match this filter."}
+        <p className="border-t border-ink py-10 text-sm text-muted">
+          {notes.length === 0
+            ? "No notes yet. Write the first one above."
+            : "No notes match this filter."}
         </p>
       ) : (
-        <div className="space-y-4">
+        <div className="border-t border-ink">
           {visible.map((note) => (
             <NoteCard
               key={note.id}

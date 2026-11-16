@@ -42,3 +42,8 @@ next-env.d.ts
 
 # keep the example env
 !.env.example
+
+.scratch
+.hallmark
+test-results
+playwright-report

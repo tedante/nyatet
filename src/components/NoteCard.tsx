@@ -44,20 +44,20 @@ export function NoteCard({ note, onChanged, onDeleted, onTagClick }: Props) {
   }
 
   return (
-    <article className="rounded-xl border border-stone-200 bg-white p-4">
+    <article className="border-b border-rule py-6">
       {editing ? (
         <div>
           <textarea
             value={value}
             onChange={(event) => setValue(event.target.value)}
             rows={5}
-            className="w-full resize-y rounded-lg border border-stone-300 p-3 text-sm outline-none focus:border-teal-600"
+            className="w-full resize-y bg-transparent text-md leading-relaxed text-ink"
           />
-          <div className="mt-2 flex gap-2">
+          <div className="mt-3 flex gap-2">
             <button
               onClick={saveEdit}
               disabled={pending}
-              className="rounded-lg bg-teal-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-60"
+              className="rounded-[10px] bg-ink px-4 py-2 text-sm font-semibold text-paper hover:bg-ink-2 disabled:opacity-60"
             >
               Save
             </button>
@@ -66,7 +66,7 @@ export function NoteCard({ note, onChanged, onDeleted, onTagClick }: Props) {
                 setValue(note.content);
                 setEditing(false);
               }}
-              className="rounded-lg px-3 py-1.5 text-sm text-stone-600 hover:bg-stone-100"
+              className="rounded-[10px] border border-rule bg-paper-2 px-4 py-2 text-sm font-semibold text-ink hover:border-ink"
             >
               Cancel
             </button>
@@ -82,7 +82,7 @@ export function NoteCard({ note, onChanged, onDeleted, onTagClick }: Props) {
             <button
               key={tag}
               onClick={() => onTagClick(tag)}
-              className="rounded-full bg-stone-100 px-2 py-0.5 text-xs text-stone-600 hover:bg-stone-200"
+              className="rounded-full border border-rule px-2.5 py-0.5 text-xs font-semibold text-ink-2 hover:border-ink"
             >
               #{tag}
             </button>
@@ -90,20 +90,28 @@ export function NoteCard({ note, onChanged, onDeleted, onTagClick }: Props) {
         </div>
       )}
 
-      <footer className="mt-3 flex flex-wrap items-center gap-3 border-t border-stone-100 pt-3 text-xs text-stone-500">
+      <footer className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted">
         <time dateTime={note.createdAt}>{formatDate(note.createdAt)}</time>
-        {note.pinned && <span className="text-teal-700">Pinned</span>}
-        <div className="ml-auto flex items-center gap-2">
-          <Link href={`/notes/${note.id}`} className="hover:text-stone-900">
+        {note.pinned && (
+          <span className="rounded-full bg-accent-soft px-2 py-0.5 font-semibold text-accent-soft-ink">
+            Pinned
+          </span>
+        )}
+        <div className="ml-auto flex items-center gap-4">
+          <Link href={`/notes/${note.id}`} className="font-semibold text-ink hover:underline">
             Open
           </Link>
-          <button onClick={() => patch({ pinned: !note.pinned })} disabled={pending} className="hover:text-stone-900">
+          <button
+            onClick={() => patch({ pinned: !note.pinned })}
+            disabled={pending}
+            className="hover:text-ink"
+          >
             {note.pinned ? "Unpin" : "Pin"}
           </button>
-          <button onClick={() => setEditing(true)} className="hover:text-stone-900">
+          <button onClick={() => setEditing(true)} className="hover:text-ink">
             Edit
           </button>
-          <button onClick={remove} disabled={pending} className="hover:text-red-600">
+          <button onClick={remove} disabled={pending} className="hover:text-ink">
             Delete
           </button>
         </div>

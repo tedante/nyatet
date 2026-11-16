@@ -37,42 +37,44 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-16">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold tracking-tight">Nyatet</h1>
-        <p className="mt-1 text-sm text-stone-500">
-          {isSignup ? "Create an account to start writing." : "Sign in to your notes."}
+    <main className="flex flex-1 items-center justify-center px-4 py-16 sm:px-6">
+      <div className="w-full max-w-[400px]">
+        <p className="font-display text-md font-bold tracking-[-0.04em] text-ink">Nyatet</p>
+
+        <h1 className="mt-12 text-2xl">{isSignup ? "Create an account" : "Sign in"}</h1>
+        <p className="mt-2 text-sm text-muted">
+          {isSignup ? "One minute, then you are writing." : "Your notes are where you left them."}
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5 border-t border-ink pt-6">
           {isSignup && (
             <label className="block">
-              <span className="text-sm font-medium text-stone-700">Name</span>
+              <span className="text-sm font-semibold text-ink">Name</span>
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 required
                 maxLength={60}
                 autoComplete="name"
-                className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600"
+                className="mt-1.5 w-full rounded-[10px] border border-muted bg-paper px-3 py-2 text-md text-ink"
               />
             </label>
           )}
 
           <label className="block">
-            <span className="text-sm font-medium text-stone-700">Email</span>
+            <span className="text-sm font-semibold text-ink">Email</span>
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
               autoComplete="email"
-              className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600"
+              className="mt-1.5 w-full rounded-[10px] border border-muted bg-paper px-3 py-2 text-md text-ink"
             />
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-stone-700">Password</span>
+            <span className="text-sm font-semibold text-ink">Password</span>
             <input
               type="password"
               value={password}
@@ -80,26 +82,26 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
               required
               minLength={isSignup ? 8 : 1}
               autoComplete={isSignup ? "new-password" : "current-password"}
-              className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600"
+              className="mt-1.5 w-full rounded-[10px] border border-muted bg-paper px-3 py-2 text-md text-ink"
             />
           </label>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-error">{error}</p>}
 
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-lg bg-teal-700 px-3 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-60"
+            className="w-full rounded-[10px] bg-ink px-4 py-2.5 text-sm font-semibold text-paper hover:bg-ink-2 disabled:opacity-60"
           >
             {pending ? "Working..." : isSignup ? "Create account" : "Sign in"}
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-stone-500">
+        <p className="mt-6 text-sm text-muted">
           {isSignup ? "Already have an account? " : "No account yet? "}
           <Link
             href={isSignup ? "/login" : "/signup"}
-            className="font-medium text-teal-700 hover:underline"
+            className="font-semibold text-ink underline decoration-rule underline-offset-4 hover:decoration-accent"
           >
             {isSignup ? "Sign in" : "Sign up"}
           </Link>

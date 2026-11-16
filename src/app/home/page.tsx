@@ -15,7 +15,7 @@ export default async function HomePage() {
   return (
     <>
       <Header name={user.name} />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-[720px] flex-1 px-4 py-6 sm:px-6">
         <Timeline initialNotes={notes} />
       </main>
     </>
