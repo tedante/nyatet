@@ -7,7 +7,7 @@ A small note-taking app: markdown notes, tags, search, and read-only share links
 - Email and password accounts with a JWT session cookie
 - Markdown notes with `#tags`, pin, edit, delete
 - Timeline with text search and tag filter
-- Share links with optional expiry, revoke, and a public read-only page at `/s/:token`
+- Share links with a name, a readable slug, optional expiry, revoke, and a public read-only page at `/s/:token` or `/s/:slug`
 
 ## Stack
 
@@ -37,6 +37,8 @@ Open http://localhost:3000, create an account, and write a note.
 | `npm run start` | Serve the production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript, no emit |
+| `npm run test` | Unit tests against the local database |
+| `npm run test:e2e` | Browser tests |
 | `npm run db:push` | Apply the schema to the database in `.env.local` |
 | `npm run db:generate` | Generate SQL migrations into `drizzle/` |
 | `npm run db:studio` | Open Drizzle Studio |
@@ -63,7 +65,7 @@ Neon's free tier suspends an idle database, so the first request after a pause i
 
 - `users`: id, email, name, password hash
 - `notes`: id, user id, markdown content, pinned, timestamps
-- `note_shares`: id, note id, random token, optional name, optional expiry
+- `note_shares`: id, note id, random token, optional readable slug, optional name, optional expiry
 
 Tags are derived from note content at read time, not stored.
 
@@ -72,6 +74,7 @@ Tags are derived from note content at read time, not stored.
 - Passwords are hashed with scrypt and a random salt.
 - The session cookie is httpOnly, SameSite=Lax, and Secure in production.
 - Share tokens are 24 random bytes, read-only, revocable, and can expire.
+- A share slug is a readable alias and is guessable by nature. The random token stays the private form.
 - Markdown is sanitized with `rehype-sanitize` before rendering.
 - Auth endpoints have no rate limiting yet.
 

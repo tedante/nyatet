@@ -299,8 +299,8 @@ export function NoteDetail({ note: initialNote, shares: initialShares }: { note:
                   </form>
 
                     <p className="mt-2 text-xs text-muted">
-                      Changing the link stops the previous URL from working. Leave it empty to use
-                      the random one.
+                      Changing the slug stops the previous readable URL from working. Leave it empty
+                      to use the random one.
                     </p>
 
                     {shareError && <p className="mt-2 text-xs text-error">{shareError}</p>}

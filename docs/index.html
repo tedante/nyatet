@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nyatet · markdown notes with readable share links</title>
+<meta name="description" content="A small note-taking app: markdown notes, tags, search, and read-only share links with readable slugs. Runs on the free Vercel tier with a free Neon Postgres database.">
+<link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+<meta property="og:title" content="Nyatet">
+<meta property="og:description" content="Markdown notes, tags, search, and share links you can read out loud.">
+<meta property="og:image" content="https://tedante.github.io/nyatet/assets/home.png">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  @font-face {
+    font-family: "Jost";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("assets/fonts/jost-700.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Karla";
+    font-style: normal;
+    font-weight: 400 600;
+    font-display: swap;
+    src: url("assets/fonts/karla-400-600.woff2") format("woff2");
+  }
+
+  :root {
+    --paper: oklch(84% 0.024 82);
+    --paper-2: oklch(79.5% 0.028 80);
+    --paper-3: oklch(89.5% 0.018 84);
+    --ink: oklch(18% 0.008 60);
+    --ink-2: oklch(27% 0.01 60);
+    --muted: oklch(39% 0.014 62);
+    --rule: oklch(58% 0.022 72);
+    --accent: oklch(46% 0.2 264);
+    --accent-3: oklch(85% 0.165 92);
+    --sans: "Karla", ui-sans-serif, system-ui, sans-serif;
+    --display: "Jost", "Futura", sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    --wrap: 960px;
+    --measure: 66ch;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink-2);
+    font: 16px/1.6 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  img { display: block; max-width: 100%; height: auto; }
+  a, button { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  ::selection { background: var(--accent-3); color: var(--ink); }
+  h1, h2 {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1.02;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+  p { margin: 0; max-width: var(--measure); text-wrap: pretty; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    background: var(--paper-2);
+    padding: 1px 5px;
+  }
+  pre {
+    margin: 16px 0 0;
+    padding: 16px 20px;
+    background: var(--ink);
+    color: var(--paper);
+    overflow-x: auto;
+  }
+  pre code { background: none; padding: 0; font-size: 14px; line-height: 1.7; }
+  .wrap { width: 100%; max-width: var(--wrap); margin-inline: auto; padding-inline: 24px; }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .skip {
+    position: absolute; left: 8px; top: -56px; z-index: 30;
+    background: var(--ink); color: var(--paper);
+    padding: 8px 12px; font-weight: 600; text-decoration: none;
+  }
+  .skip:focus { top: 8px; }
+
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    border-bottom: 3px solid var(--ink);
+    background: var(--paper);
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; padding-block: 12px; flex-wrap: wrap; }
+  .brand {
+    font-family: var(--display); font-weight: 700; font-size: 20px;
+    text-transform: uppercase; letter-spacing: -0.005em;
+    color: var(--ink); text-decoration: none;
+  }
+  .links { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+  .links a {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    text-decoration: none; border-bottom: 2px solid transparent;
+  }
+  .links a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .hero { padding: 56px 0 0; }
+  h1 { margin-top: 10px; font-size: clamp(40px, 7vw, 72px); max-width: 14ch; }
+  .lede { margin-top: 18px; font-size: 18px; color: var(--ink-2); }
+
+  .install {
+    display: flex; align-items: stretch; gap: 8px; max-width: 640px; margin-top: 24px;
+    border: 2px solid var(--ink); background: var(--paper-3); padding: 8px;
+  }
+  .install pre { flex: 1; min-width: 0; margin: 0; padding: 8px 6px; background: none; color: var(--ink); overflow-x: auto; }
+  .install pre code { font-size: 12.5px; line-height: 1.7; white-space: pre; }
+  .btn {
+    flex: none; border: 2px solid var(--ink); background: transparent; color: var(--ink);
+    padding: 8px 14px; font: 600 13px var(--sans); text-transform: uppercase; cursor: pointer;
+  }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn.primary { background: var(--ink); color: var(--paper); }
+  .btn.primary:hover { background: var(--paper); color: var(--ink); }
+  .btn.done { background: var(--accent-3); border-color: var(--ink); color: var(--ink); }
+  .hero-links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 14px; font-size: 14px; color: var(--muted); }
+
+  figure { margin: 0; }
+  .shot { border: 3px solid var(--ink); background: var(--paper-3); margin-top: 32px; }
+  .shot img { width: 100%; }
+  .shot figcaption { padding: 8px 12px; border-top: 2px solid var(--ink); font-size: 13px; color: var(--muted); }
+
+  section { padding-top: 72px; }
+  .label { font-size: 13px; font-weight: 600; color: var(--muted); }
+  h2 { margin-top: 6px; font-size: clamp(26px, 4vw, 40px); max-width: 20ch; }
+  section p + p { margin-top: 10px; }
+  .body { margin-top: 14px; }
+  ul.points { margin: 14px 0 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); max-width: var(--measure); }
+  ul.points li { padding: 9px 0; border-bottom: 1px solid var(--rule); font-size: 15px; }
+  ul.points b { color: var(--ink); }
+
+  .tour { padding-top: 56px; }
+  .cards {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 3px solid var(--ink); border-left: 3px solid var(--ink);
+    margin-top: 20px;
+  }
+  .card {
+    display: flex; flex-direction: column; gap: 4px; padding: 16px;
+    border-right: 3px solid var(--ink); border-bottom: 3px solid var(--ink);
+    text-decoration: none;
+  }
+  .card:hover { background: var(--paper-3); }
+  .card .card-num { font-family: var(--display); font-weight: 700; font-size: 22px; color: var(--ink); }
+  .card b { font-size: 15px; color: var(--ink); }
+  .card span { font-size: 14px; color: var(--muted); line-height: 1.45; }
+
+  ol.steps { margin: 16px 0 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); }
+  ol.steps li {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 24px;
+    align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--rule);
+    font-size: 15px;
+  }
+  ol.steps li > code { justify-self: end; text-align: right; overflow-wrap: anywhere; }
+  ol.steps li.wide { grid-template-columns: 1fr; }
+  ol.steps li.wide > code { justify-self: start; text-align: left; }
+
+  table { width: 100%; border-collapse: collapse; border-top: 2px solid var(--ink); margin-top: 16px; font-size: 15px; }
+  .table-wrap { overflow-x: auto; }
+  th, td { border-bottom: 1px solid var(--rule); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { font-size: 13px; font-weight: 600; color: var(--muted); }
+  td code { white-space: nowrap; }
+
+  dl.model { margin: 16px 0 0; border-top: 2px solid var(--ink); }
+  dl.model div { padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  dl.model dt { font-weight: 600; color: var(--ink); }
+  dl.model dd { margin: 2px 0 0; font-size: 15px; color: var(--muted); }
+
+  footer { margin-top: 96px; border-top: 3px solid var(--ink); padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; }
+  .hero-links a, footer a { font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  .hero-links a:hover, footer a:hover { text-decoration-thickness: 3px; }
+
+  @media (max-width: 860px) {
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 620px) {
+    .wrap { padding-inline: 16px; }
+    .hero { padding-top: 40px; }
+    .cards { grid-template-columns: 1fr; }
+    section { padding-top: 56px; }
+    ol.steps li { grid-template-columns: 1fr; }
+    ol.steps li > code { justify-self: start; text-align: left; }
+    .install { flex-wrap: wrap; }
+    .links { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; }
+    .links a { white-space: nowrap; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, ::before, ::after { transition-duration: 0.01ms !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top">Nyatet</a>
+    <div class="links">
+      <a href="#tour">tour</a>
+      <a href="#notes">notes</a>
+      <a href="#search">search</a>
+      <a href="#sharing">sharing</a>
+      <a href="#public">public</a>
+      <a href="#accounts">accounts</a>
+      <a href="#install">install</a>
+      <a href="#scripts">scripts</a>
+      <a href="#deploy">deploy</a>
+      <a href="#data">data</a>
+      <a href="#security">security</a>
+      <a href="#scope">scope</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <p class="label">A small note-taking app</p>
+    <h1>Notes in plain black.</h1>
+    <p class="lede">Write in markdown, group with #tags, search the timeline, and share a note with a link you can read out loud. Runs on the free Vercel tier with a free Neon Postgres database.</p>
+    <div class="install">
+      <pre><code>git clone https://github.com/tedante/nyatet.git &amp;&amp; cd nyatet
+cp .env.example .env.local
+npm install &amp;&amp; docker compose up -d &amp;&amp; npm run db:push
+npm run dev</code></pre>
+      <button class="btn primary" type="button" data-copy="git clone https://github.com/tedante/nyatet.git &amp;&amp; cd nyatet
+cp .env.example .env.local
+npm install &amp;&amp; docker compose up -d &amp;&amp; npm run db:push
+npm run dev">Copy</button>
+      <span class="sr-only" role="status" aria-live="polite" id="copy-status"></span>
+    </div>
+    <div class="hero-links">
+      <a href="#tour">Take the tour</a>
+      <a href="https://github.com/tedante/nyatet">Source on GitHub</a>
+      <span>Next.js 16 · React 19 · Drizzle · Postgres</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <figure class="shot">
+      <img src="assets/home.png" width="1440" height="900" alt="The Nyatet home screen: a composer above a search field and tag filters, then a markdown note titled Pack for Lisbon.">
+      <figcaption>The composer sits first, the timeline below it.</figcaption>
+    </figure>
+  </div>
+</header>
+
+<div class="tour wrap" id="tour">
+  <p class="label">Tour</p>
+  <h2>Everything it does</h2>
+  <div class="cards">
+    <a class="card" href="#notes"><span class="card-num">01</span><b>Markdown notes</b><span>Write in markdown, tag with #tags, pin the ones you keep.</span></a>
+    <a class="card" href="#search"><span class="card-num">02</span><b>Search and tags</b><span>Filter the timeline by text or by one tag.</span></a>
+    <a class="card" href="#sharing"><span class="card-num">03</span><b>Share links</b><span>A name, a readable slug, an expiry, and revoke.</span></a>
+    <a class="card" href="#public"><span class="card-num">04</span><b>The public page</b><span>A read-only page that needs no account.</span></a>
+    <a class="card" href="#accounts"><span class="card-num">05</span><b>Accounts</b><span>Email and password, a session cookie, nothing more.</span></a>
+    <a class="card" href="#install"><span class="card-num">06</span><b>Run it yourself</b><span>Clone, install, and a local Postgres.</span></a>
+  </div>
+</div>
+
+<main id="main">
+  <section id="notes" class="wrap">
+    <p class="label">01 · notes</p>
+    <h2>Write in markdown, tag with #tags</h2>
+    <p class="body">Every note is markdown: headings, lists, quotes, code and tables all render. A tag is a word you typed with a <code>#</code> in front. Nothing is stored separately, so the tag list is always exactly the tags in your notes.</p>
+    <ul class="points">
+      <li><b>Pin</b> the notes you come back to, and they stay at the top.</li>
+      <li><b>Edit</b> in place, at the same size you read at.</li>
+      <li><b>Delete</b> a note and its share links go with it.</li>
+    </ul>
+  </section>
+
+  <section id="search" class="wrap">
+    <p class="label">02 · search</p>
+    <h2>Find it again</h2>
+    <p class="body">The timeline searches the note text as you type, and the tag row filters to one tag at a time. The tags are the ones your notes already use, sorted, so the filter never invents a tag you do not have.</p>
+  </section>
+
+  <section id="sharing" class="wrap">
+    <p class="label">03 · sharing</p>
+    <h2>A link you can read out loud</h2>
+    <p class="body">Create a link for any note, then give it a name, a readable slug, and an expiry. The URL becomes <code>/s/lisbon</code> instead of a string of random characters. The random URL keeps working after you set a slug, so a link already sent does not break.</p>
+    <ul class="points">
+      <li><b>Name</b> a link so the list is readable when a note has several.</li>
+      <li><b>Slug</b> is 2 to 24 characters of lowercase letters, digits, hyphen and underscore, starting with a letter or digit.</li>
+      <li><b>Expiry</b> is 1, 7 or 30 days, or never, and can be changed later.</li>
+      <li><b>Revoke</b> stops the link immediately.</li>
+    </ul>
+    <figure class="shot">
+      <img src="assets/note.png" width="1440" height="900" loading="lazy" decoding="async" alt="A note titled Pack for Lisbon with a checklist and a quote, and its share links showing a name, the slug lisbon and an expiry.">
+      <figcaption>A note, its share links, and the readable URL.</figcaption>
+    </figure>
+  </section>
+
+  <section id="public" class="wrap">
+    <p class="label">04 · the public page</p>
+    <h2>A reader needs no account</h2>
+    <p class="body">A share link opens a read-only page: the note, who shared it, and the date. No app navigation, no sign in. Expired and revoked links return not found, and the page asks search engines not to index it.</p>
+    <figure class="shot">
+      <img src="assets/share.png" width="1440" height="900" loading="lazy" decoding="async" alt="The public page for the same note, with the note body and a footer that names the person who shared it and the date.">
+      <figcaption>The share page, signed out.</figcaption>
+    </figure>
+  </section>
+
+  <section id="accounts" class="wrap">
+    <p class="label">05 · accounts</p>
+    <h2>Email and a password</h2>
+    <p class="body">Sign up with a name, an email and a password of at least eight characters. The session is a JWT in an httpOnly cookie, and passwords are hashed with scrypt and a random salt. There is no password reset and no email verification yet.</p>
+  </section>
+
+  <section id="install" class="wrap">
+    <p class="label">06 · install</p>
+    <h2>Run it locally</h2>
+    <p class="body">You need Node.js 20 or newer and Docker.</p>
+    <ol class="steps">
+      <li><span>Copy the environment file</span><code>cp .env.example .env.local</code></li>
+      <li>
+        <span>Generate a session secret and put it in <code>AUTH_SECRET</code></span>
+        <code>openssl rand -base64 32</code>
+      </li>
+      <li><span>Start Postgres</span><code>docker compose up -d</code></li>
+      <li><span>Install dependencies</span><code>npm install</code></li>
+      <li><span>Create the tables</span><code>npm run db:push</code></li>
+      <li><span>Start the app</span><code>npm run dev</code></li>
+    </ol>
+    <p class="body">The env file has two values: <code>DATABASE_URL</code>, which already points at the Docker database, and <code>AUTH_SECRET</code>, which you generate above. Open <code>http://localhost:3000</code>, create an account, and write a note.</p>
+  </section>
+
+  <section id="scripts" class="wrap">
+    <p class="label">07 · scripts</p>
+    <h2>What each command does</h2>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">Command</th><th scope="col">What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>npm run dev</code></td><td>Start the dev server.</td></tr>
+        <tr><td><code>npm run build</code></td><td>Production build.</td></tr>
+        <tr><td><code>npm run start</code></td><td>Serve the production build.</td></tr>
+        <tr><td><code>npm run lint</code></td><td>ESLint.</td></tr>
+        <tr><td><code>npm run typecheck</code></td><td>TypeScript, no emit.</td></tr>
+        <tr><td><code>npm run test</code></td><td>Unit tests against the local database.</td></tr>
+        <tr><td><code>npm run test:e2e</code></td><td>Browser tests.</td></tr>
+        <tr><td><code>npm run db:push</code></td><td>Apply the schema to the database in the env file.</td></tr>
+        <tr><td><code>npm run db:generate</code></td><td>Generate SQL migrations.</td></tr>
+        <tr><td><code>npm run db:studio</code></td><td>Open Drizzle Studio.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section id="deploy" class="wrap">
+    <p class="label">08 · deploy</p>
+    <h2>Vercel and Neon, on the free tier</h2>
+    <ol class="steps">
+      <li><span>Create a Neon project and copy the pooled connection string.</span></li>
+      <li><span>Push the repository to GitHub and import it in Vercel.</span></li>
+      <li><span>Add <code>DATABASE_URL</code> and <code>AUTH_SECRET</code> in Vercel.</span></li>
+      <li class="wide"><span>Create the tables once from your machine, with the Neon connection string.</span>
+        <pre><code>DATABASE_URL="postgres://...neon.tech/neondb?sslmode=require" \
+  node ./node_modules/drizzle-kit/bin.cjs push</code></pre>
+      </li>
+      <li><span>Deploy.</span></li>
+    </ol>
+    <p class="body">Neon's free tier suspends an idle database, so the first request after a pause is slower.</p>
+  </section>
+
+  <section id="data" class="wrap">
+    <p class="label">09 · data model</p>
+    <h2>Three tables</h2>
+    <dl class="model">
+      <div><dt>users</dt><dd>id, email, name, password hash</dd></div>
+      <div><dt>notes</dt><dd>id, user id, markdown content, pinned, timestamps</dd></div>
+      <div><dt>note_shares</dt><dd>id, note id, random token, readable slug, name, expiry</dd></div>
+    </dl>
+    <p class="body">Tags are derived from the note text at read time, not stored.</p>
+  </section>
+
+  <section id="security" class="wrap">
+    <p class="label">10 · security</p>
+    <h2>What it does and does not protect</h2>
+    <ul class="points">
+      <li><b>Passwords</b> are hashed with scrypt and a random salt.</li>
+      <li><b>The session cookie</b> is httpOnly, SameSite=Lax, and Secure in production.</li>
+      <li><b>Share tokens</b> are 24 random bytes, read-only, revocable, and can expire.</li>
+      <li><b>A slug is not a secret.</b> It is a readable alias, guessable by nature; the random token stays the private form.</li>
+      <li><b>Markdown</b> is sanitized before rendering.</li>
+      <li><b>No rate limiting</b> on the auth endpoints yet.</li>
+    </ul>
+  </section>
+
+  <section id="scope" class="wrap">
+    <p class="label">11 · scope</p>
+    <h2>Not in this MVP</h2>
+    <p class="body">Password reset, email verification, attachments, comments, reactions, spaces, a public explore timeline, and note history. The app is deliberately small: notes, tags, search and share links.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Nyatet · markdown notes with readable share links</span>
+    <span><a href="https://github.com/tedante/nyatet">github</a></span>
+  </div>
+</footer>
+
+<script>
+  var copyStatus = document.getElementById("copy-status");
+  document.querySelectorAll("[data-copy]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(button.dataset.copy).then(function () {
+        button.textContent = "Copied";
+        button.classList.add("done");
+        if (copyStatus) copyStatus.textContent = "Copied to the clipboard.";
+        setTimeout(function () {
+          button.textContent = "Copy";
+          button.classList.remove("done");
+          if (copyStatus) copyStatus.textContent = "";
+        }, 1500);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

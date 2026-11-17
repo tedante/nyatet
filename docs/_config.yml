@@ -1,0 +1,5 @@
+# GitHub Pages: Settings, Pages, deploy from the main branch, folder /docs.
+# Project Pages needs a public repository on the free plan.
+# docs/agents holds the repo's own conventions and is not part of the site.
+exclude:
+  - agents
